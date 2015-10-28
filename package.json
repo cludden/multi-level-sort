@@ -1,0 +1,24 @@
+{
+  "name": "multi-level-sort",
+  "version": "0.0.0",
+  "description": "multi level sorting with mongodb",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cludden/multi-level-sort.git"
+  },
+  "author": "Chris Ludden",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cludden/multi-level-sort/issues"
+  },
+  "homepage": "https://github.com/cludden/multi-level-sort",
+  "dependencies": {
+    "async": "^1.5.0",
+    "lodash": "^3.10.1",
+    "mongoose": "^4.2.3"
+  }
+}

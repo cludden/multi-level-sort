@@ -28,7 +28,7 @@ async.auto({
         var view = results.view,
             viewId = results.createView.id;
         
-        view.move(viewId, '8.4', '8.null', fn);
+        view.move(viewId, '8.4', '8.', fn);
     }]
 }, function(err, results) {
     if (err) {

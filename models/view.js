@@ -46,34 +46,34 @@ var view = new Schema({
 view.statics.move = function(viewId, moving, inFrontOf, cb) {
     var self = this;
     
-    // validate arguments
-    moving = moving.split('.').map(function(n) {
-        if (n !== 'null') return parseInt(n);
-        return null;
-    });
-    inFrontOf = inFrontOf.split('.').map(function(n) {
-        if (n !== 'null') return parseInt(n);
-        return null;
+    // convert string paths to array paths ('11.1.63' becomes [11,1,63])
+    [moving, inFrontOf].forEach(function(path) {
+        path = path.split('.').map(function(n) {
+            if (n !== 'null' && n !== '') return parseInt(n);
+            return null;
+        });
     });
     
-    if (moving.length !== inFrontOf.length) {
-        return cb(new Error('Invalid arguments: moving and behind must be same depth'));
-    }
+    // verify 'moving' and 'inFrontOf' paths are the same depth (categories, groups, or kpis)
+    if (moving.length !== inFrontOf.length) return cb(new Error('Invalid arguments: moving and behind must be same depth'));
 
+    // verify that 'moving' and 'inFrontOf' paths are equal up until the last position
+    // categories can only move within a view, groups within a category, and kpis within a group
     var initialMoving = _.initial(moving),
-        initialInFrontOf = _.initial(inFrontOf);
-    var theSame = initialMoving.every(function(item, i) {
-        return initialInFrontOf[i] === item;
-    });
-    if (initialMoving.length && !theSame) {
-        return cb(new Error('Invalid arguments: items can only be moved within the same depth'));
-    }
+        initialInFrontOf = _.initial(inFrontOf),
+        theSame = initialMoving.every(function(item, i) {
+            return initialInFrontOf[i] === item;
+        });
+    if (initialMoving.length && !theSame) return cb(new Error('Invalid arguments: items can only be moved within the same depth'));
     
+    // update the view
     async.waterfall([
+        // find the view
         function findView(fn) {
             self.findOne({_id: viewId}, fn);
         },
         
+        // sort it
         function sortCategory(view, fn) {
             move(view.children, initialMoving, _.last(moving), _.last(inFrontOf), function(err) {
                 if (err) return fn(err);
@@ -81,9 +81,12 @@ view.statics.move = function(viewId, moving, inFrontOf, cb) {
             });
         },
         
+        // persist the new sort
         function updateView(view, fn) {
             self.update(viewId, view, fn);
         }
+        
+        // handle the response
     ], function(err, view) {
         if (err) return cb(err);
         cb(null, view)
@@ -100,7 +103,6 @@ function move(collection, path, moving, inFrontOf, cb) {
             });
         
         if (newIndex > 0) newIndex--;
-        console.log('current index: ', currentIndex, ' new index: ', newIndex);
         _move.call(collection, currentIndex, newIndex);
         return cb();
     }
